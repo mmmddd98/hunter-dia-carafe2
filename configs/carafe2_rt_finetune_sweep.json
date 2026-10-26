@@ -1,0 +1,15 @@
+{
+  "method": "random",
+  "metric": {
+    "name": "final/rt/finetuned_mae_normalized",
+    "goal": "minimize"
+  },
+  "parameters": {
+    "rt_lr": {"distribution": "log_uniform_values", "min": 0.00001, "max": 0.0003},
+    "rt_batch_size": {"values": [256, 512, 1024, 2048]},
+    "rt_epoch": {"values": [20, 30, 40, 60]},
+    "rt_warmup_epoch": {"values": [3, 5, 10]},
+    "early_stop": {"values": [false, true]},
+    "patience": {"values": [5, 10]}
+  }
+}

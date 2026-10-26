@@ -1,0 +1,300 @@
+package main.java.input;
+
+import com.compomics.util.experiment.biology.ions.NeutralLoss;
+import com.compomics.util.experiment.biology.modifications.Modification;
+import com.compomics.util.experiment.biology.modifications.ModificationCategory;
+import com.compomics.util.experiment.biology.modifications.ModificationFactory;
+import com.compomics.util.experiment.biology.modifications.ModificationType;
+import com.compomics.util.experiment.biology.proteins.Peptide;
+import com.compomics.util.experiment.identification.matches.ModificationMatch;
+import com.compomics.util.pride.CvTerm;
+import main.java.util.Cloger;
+import org.apache.commons.lang3.StringUtils;
+import uk.ac.ebi.pride.utilities.pridemod.io.unimod.model.Specificity;
+import uk.ac.ebi.pride.utilities.pridemod.io.unimod.model.Unimod;
+import uk.ac.ebi.pride.utilities.pridemod.io.unimod.model.UnimodModification;
+import uk.ac.ebi.pride.utilities.pridemod.io.unimod.xml.UnimodReader;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.util.*;
+
+public class ModificationUtils {
+
+    private static ModificationUtils instance = null;
+    private final ModificationFactory ptmFactory;
+    public static boolean save_mod2file = false;
+    public static double leftMass = -250.0;
+    public static double rightMass = 250.0;
+    public static String out_dir = "./";
+
+    /**
+     * Modification name to JMod
+     */
+    public final HashMap<String,JMod> mod_name2JMod = new HashMap<>();
+
+    private ModificationUtils(){
+        ptmFactory = ModificationFactory.getInstance();
+        try {
+            importModFromUnimod();
+            if(!CParameter.user_var_mods.equals("-") && !CParameter.user_var_mods.isEmpty()){
+                Cloger.getInstance().logger.info("Added user-defined variable modifications: "+CParameter.user_var_mods);
+                add_user_modifications(CParameter.user_var_mods);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static ModificationUtils getInstance() {
+        if (instance == null) {
+            instance = new ModificationUtils();
+        }
+        return instance;
+    }
+
+    public static void main(String[] args) {
+
+    }
+
+    public JMod getJModByName(String modName){
+        return mod_name2JMod.get(modName);
+    }
+
+    private void importModFromUnimod() throws IOException {
+        ArrayList<String > residues;
+        ArrayList<String> testSite = new ArrayList<>();
+        ArrayList<String> testPosition = new ArrayList<>();
+        InputStream inputStream = ModificationUtils.class.getResourceAsStream("/main/resources/unimod.xml");
+        UnimodReader unimodreader = null;
+        try {
+            unimodreader = new UnimodReader(inputStream);
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+        Unimod unimod = unimodreader.getUnimodObject();
+        List<UnimodModification> unimodModificationList = unimod.getModifications().getMod();
+        Cloger.getInstance().logger.info("All modifications in unimod:"+unimodModificationList.size());
+        HashMap<String,Integer> modificationClassMap = new HashMap<>();
+        ArrayList<String> mod2file_data = new ArrayList<>();
+        //Parsing and get each modification;
+        int i=0;
+        for (UnimodModification unimodModification: unimodModificationList){
+            Double monoMass = unimodModification.getDelta().getMonoMass().doubleValue();
+            if(monoMass < leftMass || monoMass > rightMass){
+                continue;
+            }
+            String modificationTitle = unimodModification.getTitle();
+            String modificationName = unimodModification.getFullName();
+            String unimod_accession = "UNIMOD:"+String.valueOf(unimodModification.getRecordId());
+            //Get amino acid modification detailed modification;
+            List<Specificity> specificityList = unimodModification.getSpecificity();
+            for(Specificity specificity: specificityList){
+                String site = specificity.getSite();
+                String position = specificity.getPosition();
+                String classification = specificity.getClassification();
+                if(classification.equalsIgnoreCase("AA substitution") && !CParameter.addAAsubstitutionMods){
+                    continue;
+                }
+                if(modificationClassMap.containsKey(classification)){
+                    modificationClassMap.put(classification,modificationClassMap.get(classification)+1);
+                }else{
+                    modificationClassMap.put(classification,1);
+                }
+                // output
+                if(save_mod2file){
+                    mod2file_data.add(modificationTitle + " of " + site+"\t"+modificationName+"\t"+monoMass+"\t"+site+"\t"+position+"\t"+classification);
+                }
+                Modification ptm = null;
+                String ptmName;
+                i++;
+
+                if(site.equals("N-term")){
+                    if(position.equals("Any N-term")){
+                        ptmName = modificationTitle + " of " + site;
+                        ptm = new Modification(ModificationType.modn_peptide,ptmName,monoMass,null,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else if(position.equals("Protein N-term")){
+                        ptmName = modificationTitle + " of protein " + site;
+                        ptm = new Modification(ModificationType.modn_protein,ptmName,monoMass,null,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }
+                }else if(site.equals("C-term")){
+                    if(position.equals("Any C-term")){
+                        ptmName = modificationTitle + " of " + site;
+                        ptm = new Modification(ModificationType.modc_peptide, ptmName,monoMass,null,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else if(position.equals("Protein C-term")){
+                        ptmName = modificationTitle + " of protein " + site;
+                        ptm = new Modification(ModificationType.modc_protein, ptmName,monoMass,null,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }
+                }else {
+                    residues = new ArrayList<>();
+                    residues.add(site);
+                    if(position.equals("Any N-term")){
+                        ptmName = modificationTitle + " of " + site;
+                        // Modification at the N terminus of a peptide at particular amino acids.
+                        ptm = new Modification(ModificationType.modnaa_peptide, ptmName, monoMass, residues,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else if(position.equals("Protein N-term")){
+                        ptmName = modificationTitle + " of protein " + site;
+                        // Modification at the N terminus of a protein at particular amino acids.
+                        ptm = new Modification(ModificationType.modnaa_protein, ptmName, monoMass, residues,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else if (position.equals("Any C-term")){
+                        ptmName = modificationTitle + " of " + site;
+                        ptm = new Modification(ModificationType.modcaa_peptide, ptmName, monoMass, residues,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else if(position.equals("Protein C-term")){
+                        ptmName = modificationTitle + " of protein " + site;
+                        ptm = new Modification(ModificationType.modcaa_protein, ptmName, monoMass, residues,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }else {
+                        ptmName = modificationTitle + " of " + site;
+                        ptm = new Modification(ModificationType.modaa, ptmName, monoMass, residues,ModificationCategory.Other);
+                        ptm.setShortName(modificationTitle);
+                    }
+                }
+                if(ptm!=null) {
+                    if(classification.equalsIgnoreCase("AA substitution") && CParameter.addAAsubstitutionMods){
+                        ptm.setCategory(ModificationCategory.Nucleotide_Substitution_One);
+                    }
+                    CvTerm cvTerm = new CvTerm();
+                    cvTerm.setAccession(unimod_accession);
+                    ptm.setUnimodCvTerm(cvTerm);
+                    // This is critical for user-defined modifications with neutral losses
+                    if(ptm.getName().equalsIgnoreCase("Phospho of S") ||
+                            ptm.getName().equalsIgnoreCase("Phospho of T")){
+                        ArrayList<NeutralLoss> nl_list = new ArrayList<>();
+                        nl_list.add(NeutralLoss.H3PO4);
+                        ptm.setNeutralLosses(nl_list);
+                    }
+                    if(!ptmFactory.containsModification(ptm.getName())){
+                        ptmFactory.addUserModification(ptm);
+                    }
+                    mod_name2JMod.put(ptm.getName(),new JMod());
+                    mod_name2JMod.get(ptm.getName()).psi_ms_name = unimodModification.getTitle();
+                    mod_name2JMod.get(ptm.getName()).unimod_accession = "UniMod:"+unimodModification.getRecordId();
+                    mod_name2JMod.get(ptm.getName()).position = position;
+                    if(position.equals("Protein N-term") || position.equals("Protein C-term")) {
+                        mod_name2JMod.get(ptm.getName()).site = position;
+                    }else{
+                        mod_name2JMod.get(ptm.getName()).site = site;
+                    }
+                    mod_name2JMod.get(ptm.getName()).mod_mass = monoMass;
+                }
+                if(!testSite.contains(site)){
+                    testSite.add(site);
+                }
+                if(!testPosition.contains(position)){
+                    testPosition.add(position);
+                }
+
+            }
+        }
+
+        if(save_mod2file){
+            // Export detailed modification information
+            String out_mod_file = out_dir + "/Unimod.tsv";
+            BufferedWriter bw = new BufferedWriter(new FileWriter(new File(out_mod_file)));
+            bw.write("mod_title\tmod_name\tmono_mass\tsite\tposition\tclassification\n");
+            for(String line: mod2file_data) {
+                bw.write(line+"\n");
+            }
+            bw.close();
+        }
+    }
+
+    private void add_user_modifications(String mod){
+        String[] user_mods = mod.split(";");
+        int i=0;
+        for(String m: user_mods){
+            i++;
+            // mod_name,aa,mass,composition
+            String[]d = m.split(",");
+            String mod_name = d[0];
+            String aa = d[1];
+            double mass = Double.parseDouble(d[2]);
+            Modification ptm = null;
+            String ptmName;
+
+            ArrayList<String> residues = new ArrayList<>();
+            residues.add(aa);
+            ptmName = mod_name + " of " + aa;
+            ptm = new Modification(ModificationType.modaa, ptmName, mass, residues,ModificationCategory.Other);
+            ptm.setShortName(mod_name);
+            ModificationFactory ptmFactory = ModificationFactory.getInstance();
+
+            CvTerm cvTerm = new CvTerm();
+            String unimod_accession = "UNIMOD:u"+i;
+            cvTerm.setAccession(unimod_accession);
+            ptm.setUnimodCvTerm(cvTerm);
+            if(!ptmFactory.containsModification(ptm.getName())){
+                ptmFactory.addUserModification(ptm);
+            }
+            mod_name2JMod.put(ptm.getName(),new JMod());
+            mod_name2JMod.get(ptm.getName()).psi_ms_name = mod_name;
+            mod_name2JMod.get(ptm.getName()).unimod_accession = mod_name;
+            mod_name2JMod.get(ptm.getName()).position = "Anywhere";
+            mod_name2JMod.get(ptm.getName()).site = aa;
+            mod_name2JMod.get(ptm.getName()).mod_mass = mass;
+            Cloger.getInstance().logger.info("Added modification: "+mod_name+"\t"+aa+"\t"+mass);
+        }
+    }
+
+    public String getModificationString(Peptide peptide){
+        String mod = "-";
+        ModificationMatch modificationMatchs[] = peptide.getVariableModifications();
+        if(modificationMatchs !=null && modificationMatchs.length>=1){
+            String d[] = new String[modificationMatchs.length];
+            for(int i=0;i<d.length;i++){
+                Modification ptm = ptmFactory.getModification(modificationMatchs[i].getModification());
+                d[i] = ptm.getName()+"@"+modificationMatchs[i].getSite()+"["+String.format("%.4f",ptm.getMass())+"]";
+            }
+            mod = StringUtils.join(d,';');
+        }
+
+        return(mod);
+    }
+
+    public String getSkylineFormatPeptide(Peptide peptide){
+        ModificationMatch []modificationMatchs = peptide.getVariableModifications();
+        if(modificationMatchs !=null && modificationMatchs.length>=1){
+            String [] aa = peptide.getSequence().split("");
+            String d[] = new String[modificationMatchs.length];
+            for(int i=0;i<d.length;i++){
+                Modification ptm = ptmFactory.getModification(modificationMatchs[i].getModification());
+                int pos = modificationMatchs[i].getSite();
+                if(pos==0){
+                    aa[0] = "["+String.format("%.4f",ptm.getMass())+"]" + aa[0];
+                }else if(pos > aa.length){
+                    aa[pos-1] = aa[pos-1] + "["+String.format("%.4f",ptm.getMass())+"]";
+                }else{
+                    aa[pos-1] = aa[pos-1] + "["+String.format("%.4f",ptm.getMass())+"]";
+                }
+            }
+            return StringUtils.join(aa,"");
+        }else {
+            return peptide.getSequence();
+        }
+    }
+
+    public String getModificationString (String modValue){
+        CModification.getInstance();
+        ArrayList<String> mods = new ArrayList<>();
+        if(!modValue.equalsIgnoreCase("0") && modValue != null && !modValue.isEmpty()){
+            String[] fm = modValue.split(",");
+            for (String s : fm) {
+                String ptMname = CModification.getInstance().getPTMname(Integer.parseInt(s));
+                mods.add(ptMname);
+            }
+        }
+        String res = "-";
+        if(!mods.isEmpty()){
+            res = StringUtils.join(mods,',');
+        }
+        return(res);
+
+    }
+
+}

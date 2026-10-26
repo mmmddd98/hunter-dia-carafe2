@@ -1,0 +1,8 @@
+{
+  "name": "carafe2-rt-controlled-heavy-weights",
+  "method": "grid",
+  "metric": {"name": "final/rt/mean_seed_heavy_dimethyl_mae", "goal": "minimize"},
+  "parameters": {
+    "configuration": {"values": ["weights_1_1_1", "weights_6_2_2", "weights_4_2_2", "weights_6_2_4"]}
+  }
+}

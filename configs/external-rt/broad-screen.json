@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "description": "Portable training recipes; input/output locations are supplied at runtime.",
+  "provenance": {
+    "repository": "https://github.com/mmmddd98/ma",
+    "commit": "7c410a43ba90b50fde5796a999420f0daebb1358",
+    "source": "data_collect/prepare_carafe2_trainfit_sweep.py",
+    "source_sha256": "60228d11eec4a1271aa16f792f65c901a82a93dfe63b0c0a9e6943a41f1516de"
+  },
+  "targets": [
+    "anchor_irt",
+    "chronologer_hi",
+    "linear",
+    "global_60min"
+  ],
+  "seeds": [
+    2024,
+    2025,
+    2026
+  ],
+  "trainer_arguments": {
+    "tf_type": "rt",
+    "verbose": 1,
+    "use_best_model": true,
+    "rt_validation_disjoint_by": "peptidoform",
+    "rt_epoch": 40,
+    "rt_warmup_epoch": 10,
+    "rt_batch_size": 512,
+    "no_adjust_rt_batch_size": true,
+    "rt_loss": "l1",
+    "rt_weight_decay": 0,
+    "rt_heavy_nterm_weight": 1,
+    "rt_heavy_lysine_weight": 1,
+    "rt_heavy_both_weight": 1,
+    "rt_heavy_nterm_oversample": 1,
+    "rt_heavy_lysine_oversample": 1,
+    "rt_heavy_both_oversample": 1
+  },
+  "recipes": {
+    "head/very_low": {
+      "rt_trainable": "head",
+      "rt_lr": 1e-05
+    },
+    "head/low": {
+      "rt_trainable": "head",
+      "rt_lr": 3e-05
+    },
+    "head/base": {
+      "rt_trainable": "head",
+      "rt_lr": 0.0001
+    },
+    "head/high": {
+      "rt_trainable": "head",
+      "rt_lr": 0.00030000000000000003
+    },
+    "head/very_high": {
+      "rt_trainable": "head",
+      "rt_lr": 0.001
+    },
+    "cnn_head/very_low": {
+      "rt_trainable": "cnn_head",
+      "rt_lr": 1e-05,
+      "rt_backbone_lr": 1.0000000000000002e-06
+    },
+    "cnn_head/low": {
+      "rt_trainable": "cnn_head",
+      "rt_lr": 3e-05,
+      "rt_backbone_lr": 3e-06
+    },
+    "cnn_head/base": {
+      "rt_trainable": "cnn_head",
+      "rt_lr": 0.0001,
+      "rt_backbone_lr": 1e-05
+    },
+    "cnn_head/high": {
+      "rt_trainable": "cnn_head",
+      "rt_lr": 0.00030000000000000003,
+      "rt_backbone_lr": 3.0000000000000004e-05
+    },
+    "cnn_head/very_high": {
+      "rt_trainable": "cnn_head",
+      "rt_lr": 0.001,
+      "rt_backbone_lr": 0.0001
+    },
+    "rnn_head/very_low": {
+      "rt_trainable": "rnn_head",
+      "rt_lr": 1e-05,
+      "rt_backbone_lr": 1.0000000000000002e-06
+    },
+    "rnn_head/low": {
+      "rt_trainable": "rnn_head",
+      "rt_lr": 3e-05,
+      "rt_backbone_lr": 3e-06
+    },
+    "rnn_head/base": {
+      "rt_trainable": "rnn_head",
+      "rt_lr": 0.0001,
+      "rt_backbone_lr": 1e-05
+    },
+    "rnn_head/high": {
+      "rt_trainable": "rnn_head",
+      "rt_lr": 0.00030000000000000003,
+      "rt_backbone_lr": 3.0000000000000004e-05
+    },
+    "rnn_head/very_high": {
+      "rt_trainable": "rnn_head",
+      "rt_lr": 0.001,
+      "rt_backbone_lr": 0.0001
+    },
+    "discriminative/very_low": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 1e-05,
+      "rt_backbone_lr": 1.0000000000000002e-06
+    },
+    "discriminative/low": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 3e-05,
+      "rt_backbone_lr": 3e-06
+    },
+    "discriminative/base": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.0001,
+      "rt_backbone_lr": 1e-05
+    },
+    "discriminative/high": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.00030000000000000003,
+      "rt_backbone_lr": 3.0000000000000004e-05
+    },
+    "discriminative/very_high": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.001,
+      "rt_backbone_lr": 0.0001
+    },
+    "all/very_low": {
+      "rt_trainable": "all",
+      "rt_lr": 3e-06
+    },
+    "all/low": {
+      "rt_trainable": "all",
+      "rt_lr": 9e-06
+    },
+    "all/base": {
+      "rt_trainable": "all",
+      "rt_lr": 3e-05
+    },
+    "all/high": {
+      "rt_trainable": "all",
+      "rt_lr": 9e-05
+    },
+    "all/very_high": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00030000000000000003
+    }
+  }
+}

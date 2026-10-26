@@ -1,0 +1,25 @@
+{
+  "name": "carafe2-rt-full-multiorganism-strategy-v1",
+  "method": "bayes",
+  "metric": {
+    "name": "final/rt/validation_composite_mae",
+    "goal": "minimize"
+  },
+  "parameters": {
+    "rt_loss": {"values": ["l1", "huber", "mse"]},
+    "rt_huber_delta": {"distribution": "log_uniform_values", "min": 0.01, "max": 0.08},
+    "rt_trainable": {"values": ["head", "cnn_head", "rnn_head", "all", "discriminative"]},
+    "rt_lr": {"distribution": "log_uniform_values", "min": 0.00002, "max": 0.001},
+    "rt_backbone_lr_ratio": {"distribution": "log_uniform_values", "min": 0.03, "max": 0.5},
+    "rt_weight_decay": {"values": [0.0, 0.000001, 0.00001, 0.0001]},
+    "rt_heavy_nterm_weight": {"distribution": "log_uniform_values", "min": 0.5, "max": 8.0},
+    "rt_heavy_lysine_weight": {"distribution": "log_uniform_values", "min": 0.5, "max": 4.0},
+    "rt_heavy_both_weight": {"distribution": "log_uniform_values", "min": 0.5, "max": 8.0},
+    "rt_heavy_nterm_oversample": {"value": 1.0},
+    "rt_heavy_lysine_oversample": {"value": 1.0},
+    "rt_heavy_both_oversample": {"value": 1.0},
+    "rt_batch_size": {"value": 2048},
+    "rt_epoch": {"value": 60},
+    "rt_warmup_epoch": {"value": 5}
+  }
+}

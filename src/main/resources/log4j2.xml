@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />-->
+            <PatternLayout pattern="%highlight{%-date{yyyy-MM-dd HH:mm:ss} [%-5level] %class[%method:%line] - %message%n}" />        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleAppender" />
+        </Root>
+        <!-- silence the winutils warning -->
+        <Logger name="org.apache.hadoop.util.Shell" level="error" additivity="false">
+        <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+        <Logger name="software.amazon.awssdk" level="INFO" />
+        <Logger name="software.amazon.awssdk.request" level="INFO" />
+        <Logger name="org.apache.http.wire" level="INFO" />
+        <Logger name="org.apache.parquet.hadoop.InternalParquetRecordReader" level="WARN" additivity="false" />
+        <!-- Chunk writing can request many short-lived compressors. Keep actual
+             warnings/errors, but suppress CodecPool's per-compressor INFO spam. -->
+        <Logger name="org.apache.hadoop.io.compress.CodecPool" level="WARN" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+        <!-- DIA-NN writes a trailing empty row group; ParquetFileReader logs a benign WARN when it
+             skips it. Hide it (keep ERROR so real read errors still surface). -->
+        <Logger name="org.apache.parquet.hadoop.ParquetFileReader" level="ERROR" additivity="false" />
+        <Logger name="uk.ac.ebi.pride.utilities.pridemod.io.unimod.xml.unmarshaller.UnimodUnmarshallerFactory" level="WARN" additivity="false" />
+    </Loggers>
+
+</Configuration>

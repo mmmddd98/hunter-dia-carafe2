@@ -1,0 +1,14 @@
+# Tested common Python environment for the Carafe2 fork (Python 3.11).
+# Install a platform-appropriate PyTorch build separately; see README.md.
+numpy==1.26.4
+pandas==2.2.3
+pyarrow==24.0.0
+matplotlib==3.8.2
+scikit-learn==1.9.0
+scipy==1.17.1
+psutil==7.2.2
+threadpoolctl==3.6.0
+tqdm==4.68.4
+transformers==4.47.0
+alphabase==1.2.1
+peptdeep @ git+https://github.com/wenbostar/alphapeptdeep_dia.git@f549bb70316677d647c461f5b7264069dc915272

@@ -1,0 +1,18 @@
+{
+  "method": "random",
+  "metric": {
+    "name": "final/rt/mean_seed_heavy_dimethyl_mae",
+    "goal": "minimize"
+  },
+  "parameters": {
+    "rt_heavy_nterm_oversample": {"values": [1.0, 1.5, 2.0, 3.0, 4.0]},
+    "rt_heavy_lysine_oversample": {"values": [1.0, 1.25, 1.5, 2.0]},
+    "rt_heavy_both_oversample": {"values": [1.0, 2.0, 3.0, 4.0]},
+    "rt_loss": {"values": ["l1", "huber", "mse"]},
+    "rt_huber_delta": {"values": [0.02, 0.03, 0.05]},
+    "rt_lr": {"distribution": "log_uniform_values", "min": 0.00003, "max": 0.0003},
+    "rt_batch_size": {"values": [512, 1024, 2048]},
+    "rt_epoch": {"values": [30, 40, 60]},
+    "rt_warmup_epoch": {"values": [5, 10]}
+  }
+}

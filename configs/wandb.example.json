@@ -1,0 +1,7 @@
+{
+  "project": "carafe2-finetuning",
+  "entity": null,
+  "mode": "online",
+  "tags": ["carafe2", "fine-tuning"],
+  "artifacts": false
+}

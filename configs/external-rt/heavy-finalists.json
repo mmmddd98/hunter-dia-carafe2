@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "description": "Portable training recipes; input/output locations are supplied at runtime.",
+  "provenance": {
+    "repository": "https://github.com/mmmddd98/ma",
+    "commit": "7c410a43ba90b50fde5796a999420f0daebb1358",
+    "source": "data_collect/prepare_heavy_dimethyl_rt_sweep.py",
+    "source_sha256": "5b4ba08f5e73b91fec9949e1d545cd743130c04dbbc2e7be0a2bd56f54ab7ace"
+  },
+  "targets": [
+    "anchor_irt",
+    "chronologer_hi"
+  ],
+  "seeds": [
+    2024,
+    2025,
+    2026
+  ],
+  "trainer_arguments": {
+    "tf_type": "rt",
+    "verbose": 1,
+    "use_best_model": true,
+    "rt_validation_disjoint_by": "peptidoform",
+    "rt_epoch": 40,
+    "rt_warmup_epoch": 10,
+    "rt_batch_size": 512,
+    "no_adjust_rt_batch_size": true,
+    "rt_loss": "l1",
+    "rt_weight_decay": 0,
+    "rt_heavy_nterm_weight": 1,
+    "rt_heavy_lysine_weight": 1,
+    "rt_heavy_both_weight": 1,
+    "rt_heavy_nterm_oversample": 1,
+    "rt_heavy_lysine_oversample": 1,
+    "rt_heavy_both_oversample": 1
+  },
+  "recipes": {
+    "anchor_irt/W0": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00045,
+      "rt_heavy_both_weight": 1
+    },
+    "anchor_irt/W7": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00045,
+      "rt_heavy_both_weight": 6
+    },
+    "chronologer_hi/W0": {
+      "rt_trainable": "all",
+      "rt_lr": 0.0009,
+      "rt_heavy_both_weight": 1
+    },
+    "chronologer_hi/W7": {
+      "rt_trainable": "all",
+      "rt_lr": 0.0009,
+      "rt_heavy_both_weight": 6
+    }
+  },
+  "recipe_targets": {
+    "anchor_irt/W0": "anchor_irt",
+    "anchor_irt/W7": "anchor_irt",
+    "chronologer_hi/W0": "chronologer_hi",
+    "chronologer_hi/W7": "chronologer_hi"
+  },
+  "selection_provenance": {
+    "selection_partition": "validation",
+    "selection_metric": "heavy_macro_source_balanced_mae_mean",
+    "recipe_metadata": "heavy_finalist_selection_manifest.json and carafe2_heavy_finalist_seed_checkpoint_manifest.csv accompanying the thesis model-level analysis"
+  },
+  "notes": [
+    "W0 is the matched unweighted control; W7 weights heavy-both errors sixfold.",
+    "These runs use the complete training set per epoch, with no fixed-step budget.",
+    "This file records the four evaluated target/profile recipes, not the entire evolving heavy-label search grid."
+  ]
+}

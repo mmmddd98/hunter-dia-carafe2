@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "description": "Portable training recipes; input/output locations are supplied at runtime.",
+  "provenance": {
+    "repository": "https://github.com/mmmddd98/ma",
+    "commit": "7c410a43ba90b50fde5796a999420f0daebb1358",
+    "source": "data_collect/prepare_rt_lr_refinement_sweep.py",
+    "source_sha256": "ecabc24c497675eb393181e527f4ee633d40e039e5f031b90fe09ff4f6cce9f7"
+  },
+  "targets": [
+    "chronologer_hi",
+    "anchor_irt"
+  ],
+  "seeds": [
+    2024,
+    2025,
+    2026
+  ],
+  "trainer_arguments": {
+    "tf_type": "rt",
+    "verbose": 1,
+    "use_best_model": true,
+    "rt_validation_disjoint_by": "peptidoform",
+    "rt_epoch": 40,
+    "rt_warmup_epoch": 10,
+    "rt_batch_size": 512,
+    "no_adjust_rt_batch_size": true,
+    "rt_loss": "l1",
+    "rt_weight_decay": 0,
+    "rt_heavy_nterm_weight": 1,
+    "rt_heavy_lysine_weight": 1,
+    "rt_heavy_both_weight": 1,
+    "rt_heavy_nterm_oversample": 1,
+    "rt_heavy_lysine_oversample": 1,
+    "rt_heavy_both_oversample": 1
+  },
+  "recipes": {
+    "discriminative/high": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.00030000000000000003,
+      "rt_backbone_lr": 3.0000000000000004e-05
+    },
+    "discriminative/five_x": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.0005,
+      "rt_backbone_lr": 5e-05
+    },
+    "discriminative/very_high": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.001,
+      "rt_backbone_lr": 0.0001
+    },
+    "discriminative/fifteen_x": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.0015,
+      "rt_backbone_lr": 0.00015000000000000001
+    },
+    "discriminative/twenty_x": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.002,
+      "rt_backbone_lr": 0.0002
+    },
+    "discriminative/thirty_x": {
+      "rt_trainable": "discriminative",
+      "rt_lr": 0.003,
+      "rt_backbone_lr": 0.00030000000000000003
+    },
+    "all/high": {
+      "rt_trainable": "all",
+      "rt_lr": 9e-05
+    },
+    "all/five_x": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00015000000000000001
+    },
+    "all/very_high": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00030000000000000003
+    },
+    "all/fifteen_x": {
+      "rt_trainable": "all",
+      "rt_lr": 0.00045
+    },
+    "all/twenty_x": {
+      "rt_trainable": "all",
+      "rt_lr": 0.0006000000000000001
+    },
+    "all/thirty_x": {
+      "rt_trainable": "all",
+      "rt_lr": 0.0009
+    }
+  }
+}
